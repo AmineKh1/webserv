@@ -10,13 +10,23 @@
 #include <netinet/in.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <vector.h>
+#include <vector>
+
 #define SERVER_PORT  12345
 
 #define TRUE             1
 #define FALSE            0
 
-void 
+void  set_bind_socket(int listen_sd) {
+   int rc, on = 1;
+   rc = setsockopt(listen_sd, SOL_SOCKET, SO_REUSEADDR, (char *)&on, sizeof(on));
+   if (rc < 0)
+   {
+      perror("setsockopt() failed");
+      close(listen_sd);
+      exit(-1);
+   }
+}
 
 int main (int argc, char *argv[])
 {
@@ -27,9 +37,10 @@ int main (int argc, char *argv[])
    int    close_conn;
    char   buffer[80];
    struct sockaddr_in6 addr;
+   std::vector<int>  ports;
    fd_set              master_set, working_set;
 
-
+   
    listen_sd = socket(AF_INET6, SOCK_STREAM, 0);
    if (listen_sd < 0)
    {
@@ -78,6 +89,7 @@ int main (int argc, char *argv[])
 
    FD_ZERO(&master_set);
    max_sd = listen_sd;
+
    FD_SET(listen_sd, &master_set);
 
 
@@ -128,11 +140,11 @@ int main (int argc, char *argv[])
                   else
                   {
                      std::cout <<"  New incoming connection - " << new_sd << std::endl;
+                     
                      FD_SET(new_sd, &master_set);
                      if (new_sd > max_sd)
                         max_sd = new_sd;
                   }
-                
             }
 
             else
@@ -160,8 +172,9 @@ int main (int argc, char *argv[])
                   }
 
                   len = rc;
-                  std::cout <<" bytes received " << len << std::endl;
+                  std::cout <<" ---bytes received " << len << std::endl;
 
+                  std::cout << " bytes: " << buffer << std::endl;
 
                   rc = send(i, buffer, len, 0);
                   

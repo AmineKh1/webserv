@@ -8,7 +8,7 @@
 #include <string.h>
 #include <arpa/inet.h>
 
-#define PORT 12345
+#define PORT 7000
 
 int main(int argc, char const *argv[])
 {
